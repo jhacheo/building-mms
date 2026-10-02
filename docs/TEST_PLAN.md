@@ -36,4 +36,4 @@
 - Mobile property and asset create/edit forms persist, including warranty dates.
 - Empty filtered registry and failed linked-asset save show readable states; the failed save leaves records intact.
 - Temporary integration and registry records are removed; audit entries remain append-only.
-- Vercel public deployment awaits GitHub application installation and repository connection.
+- Vercel GitHub application installed with access limited to this repository; `cjh-abc/building-mms` connected to `jhacheo/building-mms` on 2 October 2026. Public release verification follows the Git push.
