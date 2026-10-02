@@ -77,5 +77,8 @@ Record actual execution and deployment results below after these checks pass; do
 - The complete rollback SQL authorization harness passed: anonymous lockdown, cross-organization access and linkage rejection, role restrictions, audit integrity, assigned-technician lifecycle, multi-membership filtering and immutable organization ownership. All test fixtures were rolled back.
 - Local production build, TypeScript and ESLint passed after the authenticated data-layer and role-aware UI integration.
 - Local browser sign-in, empty-account onboarding, organization creation and property persistence were verified. Creating a second organization starts with an empty registry.
-- Production publication and the remaining real-session browser acceptance checks are still pending at this point.
+- Production release `ff1fbdb` deployed successfully. Signed-out visits redirect to login. Signed-in production requests load only the selected workspace.
+- Local browser switching showed Alpha's property, an empty Beta workspace, then Alpha's original property again; signout returned to login.
+- Production manager flow reported issue WO-CE9ED1, assigned a workspace member, started work and resolved it in two minutes, with authenticated audit events and weekly results.
+- Custom SMTP remains disabled in Supabase. Public signup email delivery and the full multi-account browser role scenario require SMTP configuration. Production Site URL and the exact `/auth/callback` redirect are configured.
 

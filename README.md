@@ -43,6 +43,8 @@ Priority follows `docs/INTELLIGENCE_LAYER.md`: 0–30 low, 31–60 medium, 61–
 
 Production: https://building-mms.vercel.app. Commit and push to `main`; Vercel deploys through the connected GitHub integration. Do not deploy local files with the Vercel CLI. The commit identity is pinned to jhacheo's GitHub noreply email.
 
+Public email registration requires a custom SMTP provider in Supabase Authentication → Emails → SMTP Settings. The default service only delivers to Supabase project-team addresses. Site URL and the production `/auth/callback` redirect are configured. Existing verified accounts can sign in and create isolated organizations.
+
 The multi-tenant release supersedes the earlier shared public demo. Authentication and database isolation are required before private maintenance data is entered. Verification results are recorded in `docs/TEST_PLAN.md` after execution.
 
 

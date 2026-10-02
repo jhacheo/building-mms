@@ -53,7 +53,7 @@ S4: [Auth + Lock-down]
 This release supersedes the earlier owner-only Sprint 4 sketch: organizations share records among members, and a user can have different roles across organizations. The original no-login demo rule describes the previous release; the requested multi-tenant app uses authentication and database isolation.
 
 - [ ] Supabase email/password signup, login and signout verified in browser
-- [ ] Organization onboarding and membership-aware switching verified in browser
+- [x] Organization onboarding and membership-aware switching verified in browser
 - [x] Required immutable tenant IDs and composite foreign keys applied to every core table
 - [x] Membership-backed RLS replaces every anonymous demo policy
 - [ ] Administrator adds existing email-verified users with roles
