@@ -1,0 +1,3 @@
+export function hours(value:number|null){if(value===null)return '—';if(value<1/60)return '<1 min';if(value<1)return `${Math.round(value*60)} min`;return `${value.toFixed(1)} h`;}
+export function date(value:string|null){return value?new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Kuala_Lumpur'}).format(new Date(value)):'—';}
+export function weekStart(offset=0){const local=new Date(Date.now()+8*3600000);const day=local.getUTCDay();local.setUTCDate(local.getUTCDate()-((day+6)%7)+offset*7);local.setUTCHours(0,0,0,0);return new Date(local.getTime()-8*3600000);}
