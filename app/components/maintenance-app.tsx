@@ -8,6 +8,7 @@ import { useState, useTransition, useEffect, useRef } from "react";
 import { mutate } from "@/lib/actions/work-order-actions";
 import type { Snapshot, Property, Asset, WorkOrder } from "@/lib/data/types";
 import { hours, date, weekStart } from "@/lib/utils/time";
+import { findFacility, sortFacilities } from "@/lib/facilities";
 const sections = [
   ["properties", "Properties", "building"],
   ["assets", "Assets", "asset"],
@@ -111,6 +112,10 @@ export default function MaintenanceApp({
   };
 }) {
   const router = useRouter();
+  const properties = sortFacilities(data.properties);
+  const propertyImage = (p: Property, index: number) =>
+    findFacility(p.name)?.photo ||
+    `/design/${["tower", "hotel", "campus"][index % 3]}.png`;
   const manager = ["admin", "building_manager"].includes(workspace.role);
   const registry = manager || workspace.role === "asset_manager";
   const report = manager || workspace.role === "inspection_manager";
@@ -504,7 +509,7 @@ export default function MaintenanceApp({
                       onChange={(e) => setProperty(e.target.value)}
                     >
                       <option value="all">All properties</option>
-                      {data.properties.map((p) => (
+                      {properties.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name}
                         </option>
@@ -563,7 +568,7 @@ export default function MaintenanceApp({
               )}
               {section === "properties" && (
                 <div className="registry-grid">
-                  {data.properties
+                  {properties
                     .filter((p) => matches(p.name + " " + p.address))
                     .map((p, i) => (
                       <article className="property-card" key={p.id}>
@@ -577,15 +582,26 @@ export default function MaintenanceApp({
                         </div>
                         <div className={`property-art art-${i % 3}`}>
                           <Image
-                            src={`/design/${["tower", "hotel", "campus"][i % 3]}.png`}
-                            alt=""
+                            src={propertyImage(p, i)}
+                            alt={findFacility(p.name)?.name || ""}
                             fill
                             sizes="(max-width: 760px) 90vw, (max-width: 1150px) 40vw, 30vw"
                             className="facility-image"
                           />
-                          <span className="illustration-label">
-                            Illustration
-                          </span>
+                          {findFacility(p.name) ? (
+                            <a
+                              className="illustration-label"
+                              href={findFacility(p.name)!.sourcePage}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Photo: Selangor Properties
+                            </a>
+                          ) : (
+                            <span className="illustration-label">
+                              Illustration
+                            </span>
+                          )}
                           <div className="facility-caption">
                             <h3>{p.name}</h3>
                             <p>
@@ -1142,7 +1158,7 @@ export default function MaintenanceApp({
                     value={formProperty}
                     onChange={(e) => setFormProperty(e.target.value)}
                   >
-                    {data.properties.map((p) => (
+                    {properties.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
                       </option>
