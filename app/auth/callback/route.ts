@@ -13,6 +13,6 @@ export async function GET(request: NextRequest) {
     }
   }
   return NextResponse.redirect(
-    new URL("/login?error=confirmation", request.url),
+    new URL("/login?error=authentication", request.url),
   );
 }

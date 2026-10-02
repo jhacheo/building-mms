@@ -82,3 +82,12 @@ Record actual execution and deployment results below after these checks pass; do
 - Production manager flow reported issue WO-CE9ED1, assigned a workspace member, started work and resolved it in two minutes, with authenticated audit events and weekly results.
 - Custom SMTP remains disabled in Supabase. Public signup email delivery and the full multi-account browser role scenario require SMTP configuration. Production Site URL and the exact `/auth/callback` redirect are configured.
 
+## Google signup update — 2 October 2026
+
+At the owner's request, new account registration now uses Google through Supabase rather than an external SMTP provider. Existing verified password accounts retain sign-in access. Google users use the same PKCE callback and membership-based onboarding.
+
+- Production build, TypeScript and ESLint passed.
+- Local browser signup displays Continue with Google and no password registration form.
+- With the actual Supabase Google provider disabled, pressing the button displays an actionable error and remains on signup. No raw Supabase error page is shown.
+- Google Cloud project Building MMS (`speedy-league-510407-t2`) was created. Provider credential setup and a real Google login remain pending; do not consider Google registration end-to-end verified until those steps pass.
+

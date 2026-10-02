@@ -7,6 +7,44 @@ import { createClient } from "@/lib/supabase/server";
 import { getAuthContext, requireTenant, TENANT_COOKIE } from "./tenant";
 
 export type AuthState = { error?: string; message?: string };
+export async function signInWithGoogle(): Promise<AuthState> {
+  // Avoid sending users to a raw Auth error page while the provider is disabled.
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/settings`,
+      {
+        headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
+        cache: "no-store",
+        signal: AbortSignal.timeout(10000),
+      },
+    );
+    const settings = response.ok ? await response.json() : null;
+    if (!settings?.external?.google)
+      return {
+        error:
+          "Google sign-in is not configured yet. Please contact your workspace administrator.",
+      };
+  } catch {
+    return { error: "Could not connect to sign-in. Please try again." };
+  }
+  const client = await createClient();
+  const { data, error } = await client.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: new URL(
+        "/auth/callback",
+        process.env.NEXT_PUBLIC_APP_URL || "https://building-mms.vercel.app",
+      ).toString(),
+      skipBrowserRedirect: true,
+    },
+  });
+  if (error || !data.url)
+    return {
+      error:
+        "Google sign-in is unavailable. Please contact your workspace administrator or try again later.",
+    };
+  redirect(data.url);
+}
 const value = (form: FormData, key: string) =>
   String(form.get(key) ?? "").trim();
 const cookieOptions = {

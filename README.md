@@ -43,7 +43,9 @@ Priority follows `docs/INTELLIGENCE_LAYER.md`: 0–30 low, 31–60 medium, 61–
 
 Production: https://building-mms.vercel.app. Commit and push to `main`; Vercel deploys through the connected GitHub integration. Do not deploy local files with the Vercel CLI. The commit identity is pinned to jhacheo's GitHub noreply email.
 
-Public email registration requires a custom SMTP provider in Supabase Authentication → Emails → SMTP Settings. The default service only delivers to Supabase project-team addresses. Site URL and the production `/auth/callback` redirect are configured. Existing verified accounts can sign in and create isolated organizations.
+New users register with Google through Supabase Auth; existing verified password accounts can still sign in. Google provider activation requires a Google Cloud Web OAuth client configured in Supabase. No custom SMTP is needed for Google registration. Password confirmation/recovery emails still require custom SMTP for external users. Site URL and the production `/auth/callback` redirect are configured.
+
+Google OAuth setup: use `https://building-mms.vercel.app` as the authorized JavaScript origin and `https://idzuedlnakwrqphjmjxi.supabase.co/auth/v1/callback` as Google's authorized redirect URI. Store the client ID and secret only in the Supabase Google provider settings, never in app source or public environment variables. Configure the audience for production users, using only `openid`, email and profile scopes. Complete a real Google sign-in before marking provider setup verified.
 
 The multi-tenant release supersedes the earlier shared public demo. Authentication and database isolation are required before private maintenance data is entered. Verification results are recorded in `docs/TEST_PLAN.md` after execution.
 

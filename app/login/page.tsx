@@ -1,4 +1,4 @@
-import { AccountForm } from "@/app/components/account-forms";
+import { AccountForm, GoogleSignInForm } from "@/app/components/account-forms";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -22,10 +22,14 @@ export default async function Login({
       </div>
       {params.error && (
         <p className="form-error" role="alert">
-          Could not confirm your email. Try the latest confirmation link or sign
-          in again.
+          Could not complete sign-in. Please try again. If you cancelled Google
+          sign-in, choose Continue with Google to restart.
         </p>
       )}
+      <GoogleSignInForm />
+      <p className="text-center text-sm text-gray-600">
+        Or sign in with an existing password account
+      </p>
       <AccountForm mode="login" />
     </main>
   );

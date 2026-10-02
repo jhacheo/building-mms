@@ -20,6 +20,8 @@ Database triggers limit technicians to status changes and reject assignment to u
 
 ## Secrets and audit
 
+Google sign-in uses Supabase's PKCE OAuth flow and the existing cookie-backed code exchange callback. Its redirect destination comes from deployment configuration, not form input. OAuth identities do not grant organization membership automatically; existing membership checks and onboarding still apply. Google client secrets belong only in Supabase provider settings. The app requests no offline access or additional Google API permissions. Password sign-in remains available for existing verified accounts; new account registration uses Google without SMTP.
+
 Never commit environment files or expose a service key in client bundles. The public Supabase key is safe only because table grants, RLS and trigger authorization enforce access. Audit rows are append-only through the Data API, scoped to the same organization, and written atomically with lifecycle changes. Technicians can inspect the history of assigned work only.
 
 ## Existing public data
