@@ -2231,3 +2231,165 @@ a:focus-visible {
     padding: 20px;
   }
 }
+
+/* Phone layouts: readable controls and space for the persistent navigation. */
+@media (max-width: 760px) {
+  .main-shell main {
+    padding: 20px max(16px, env(safe-area-inset-right))
+      calc(100px + env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left));
+  }
+  .page-heading {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .page-heading p {
+    max-width: none;
+    font-size: 14px;
+  }
+  .page-heading .button {
+    font-size: 14px;
+    width: 100%;
+  }
+  .stats {
+    gap: 10px;
+  }
+  .stat {
+    min-height: 116px;
+    padding: 14px;
+  }
+  .stat > span,
+  .stat small {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .stat strong {
+    font-size: 28px;
+    margin: 8px 0 4px;
+  }
+  .search input,
+  .section-picker select,
+  .filters select,
+  .field input,
+  .field select,
+  .field textarea {
+    font-size: 16px;
+  }
+  .section-picker select {
+    max-width: 148px;
+    min-width: 0;
+  }
+  .section-picker > svg {
+    display: none;
+  }
+  .header-section,
+  .page-heading > div,
+  .registry-grid > *,
+  .order-grid > * {
+    min-width: 0;
+  }
+  .property-card-header {
+    flex-wrap: wrap;
+    font-size: 12px;
+  }
+  .hub-pill {
+    flex-shrink: 0;
+  }
+  .floor-pill {
+    margin-left: auto;
+  }
+  .property-art {
+    height: 220px;
+  }
+  .facility-caption h3 {
+    font-size: 21px;
+    overflow-wrap: anywhere;
+  }
+  .facility-caption p,
+  .property-status,
+  .property-status .text-button,
+  .property-meta > span {
+    font-size: 12px;
+  }
+  .facility-caption p svg {
+    flex-shrink: 0;
+  }
+  .property-status {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .filters label {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    font-size: 14px;
+  }
+  .filters select {
+    width: 100%;
+    max-width: none;
+  }
+  .status-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .status-tabs button {
+    font-size: 13px;
+  }
+  .order-card h3,
+  .asset-card h3,
+  .weekly-heading h3 {
+    overflow-wrap: anywhere;
+  }
+  .asset-details dd,
+  .order-card p,
+  .activity-list p {
+    overflow-wrap: anywhere;
+  }
+  .record-dialog {
+    width: calc(100% - 16px);
+    max-height: calc(100dvh - 24px - env(safe-area-inset-bottom));
+    overscroll-behavior: contain;
+    padding: 16px;
+  }
+  .record-dialog .form-row {
+    flex-direction: column;
+  }
+  .record-dialog .form-row .field {
+    min-width: 0;
+    width: 100%;
+  }
+  .form-actions {
+    flex-wrap: wrap;
+  }
+  .form-actions > button {
+    flex: 1;
+  }
+  .detail-grid {
+    grid-template-columns: 1fr;
+    padding: 16px;
+    gap: 14px;
+  }
+  .assignment-form > button {
+    width: 100%;
+  }
+  .nav-item {
+    font-size: 10px;
+    min-height: 64px;
+    line-height: 1.3;
+    text-align: center;
+  }
+  .mobile-report {
+    bottom: calc(9px + env(safe-area-inset-bottom));
+    width: 56px;
+    height: 56px;
+    box-shadow: 0 3px 8px #0037b033;
+  }
+  .account-page p,
+  main > div > p {
+    overflow-wrap: anywhere;
+  }
+}

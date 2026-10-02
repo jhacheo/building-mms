@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -16,6 +16,12 @@ const jakarta = localFont({
 export const metadata: Metadata = {
   title: "Building MMS · Maintenance workspace",
   description: "Report, assign and resolve building maintenance issues.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
