@@ -47,3 +47,20 @@ S2: [Work Orders + Weekly Status] ← v1 functional
 S3: [Polish + States]
 S4: [Auth + Lock-down]
 ```
+
+## Multi-tenant release (requested after the public demo)
+
+This release supersedes the earlier owner-only Sprint 4 sketch: organizations share records among members, and a user can have different roles across organizations. The original no-login demo rule describes the previous release; the requested multi-tenant app uses authentication and database isolation.
+
+- [ ] Supabase email/password signup, login and signout verified in browser
+- [ ] Organization onboarding and membership-aware switching verified in browser
+- [x] Required immutable tenant IDs and composite foreign keys applied to every core table
+- [x] Membership-backed RLS replaces every anonymous demo policy
+- [ ] Administrator adds existing email-verified users with roles
+- [x] Technician assignment and status-only mutation enforced by database
+- [x] Authoritative authenticated reporter and audit identities
+- [x] Rollback SQL isolation/role/lifecycle test passes
+- [ ] Authenticated PRD workflow verified against production
+
+**DoD:** Two independent organizations cannot see or change each other's data; an organization team can report, assign, start and resolve a work order and see its weekly result. Signing out removes access. A member of multiple organizations can switch without mixing data.
+

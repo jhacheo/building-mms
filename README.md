@@ -1,43 +1,48 @@
 # Building MMS
 
-A mobile-first, database-backed maintenance workspace for properties, machinery, work orders and weekly status. The homepage is the working shared demo; no login is required for v1.
+A mobile-first maintenance workspace for properties, machinery, work orders and weekly status. Each organization has its own records and team roles. Sign in, create an organization, then add teammates who have registered and verified their email.
 
 ## Run locally
 
-Use Node.js 24 and pnpm 11.19.0. Link the provisioned Vercel project and run `vercel env pull .env.local`. Required environment variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Never commit environment files.
+Use Node.js 24 and pnpm 11.19.0. Link the provisioned Vercel project and run `vercel env pull .env.local`. Required variables are `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Never commit environment files or use a service key in a browser client.
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm dev
 pnpm typecheck
+pnpm lint
 pnpm build
-pnpm test:db
+node scripts/test-tenancy.cjs
 ```
 
-`test:db` performs the real lifecycle against Supabase using the demo key. It creates temporary properties, assets and issues, checks scoring, timing, constraints and audit access, then removes the test records. Append-only audit events remain as evidence.
+The last command emits a rollback-only SQL authorization test. Execute its output through the Supabase SQL editor or a privileged PostgreSQL connection. It creates five temporary identities, tests the actual anonymous and authenticated roles across two organizations, and rolls back all fixtures. It needs no service-key environment variable. Browser signup/session verification is separate; the SQL test simulates JWT identity claims.
 
-## Database
+The previous `scripts/test-database.cjs` is the historical anonymous-demo lifecycle test. Its anonymous writes are intentionally blocked after the tenancy migration.
 
-The initial schema and editable demo seeds live in `supabase/migrations`. They were applied to the provisioned project `idzuedlnakwrqphjmjxi` through the Supabase SQL editor on 2 October 2026. Both scripts are idempotent for initial setup. Do not reapply the demo seed to reset an active workspace.
+## Database and isolation
 
-Scoring and transition triggers run atomically with database writes. Starting work requires an assigned technician; resolution requires WIP. First-response and resolution timestamps remain stable after edits. Audit logs can be read by the demo, but only the private trigger can append records. Deleting linked properties/assets is blocked until their dependent records are removed.
+Tracked SQL is in `supabase/migrations`, targeting the provisioned project `idzuedlnakwrqphjmjxi`. The original schema and demo seeds were applied on 2 October 2026. The multi-tenant migration was applied to the provisioned database on 2 October 2026 and its rollback authorization test passed. Apply it once when setting up another environment. Do not reapply the seed to reset a workspace.
+
+Every maintenance row has a required organization ID. RLS checks membership and role; composite foreign keys prevent cross-organization links. Scoring, lifecycle timing and audit run atomically with writes. Starting work requires an assigned organization member; resolving requires WIP. Timestamps remain stable after edits, and audit actors are derived from the authenticated membership.
+
+Existing public-demo records are preserved in an inaccessible legacy organization without members. New accounts begin with empty organizations. An administrator can add an existing verified account through Workspace settings. Adding membership does not send an email invitation. A user can belong to several organizations and switch between them; the workspace cookie only selects a context that the server validates.
 
 ## Core workflow
 
-1. Open Work Orders and choose New Issue. Select a property and optional asset, enter symptoms and reporter, then save.
-2. Open the issue, enter a technician and save the assignment.
-3. Choose Start Work. The database records the first response.
-4. Confirm the issue is fixed and choose Resolve Issue. Resolution timing is recorded automatically.
-5. Open Weekly Status. Open issues carry forward; resolved issues appear in the week of resolution. Weeks use Asia/Kuala_Lumpur time, Monday through Sunday.
+1. A manager maintains the property and asset registry.
+2. An inspector or manager chooses New Issue, selects a property and optional asset, enters symptoms, and saves.
+3. A manager selects a technician from the organization and saves the assignment.
+4. The assigned technician chooses Start Work, then confirms and resolves the issue after fixing it.
+5. Weekly Status shows the resolved item and its timing. Open issues carry forward; resolved issues appear in their resolution week. Weeks use Asia/Kuala_Lumpur time, Monday through Sunday.
 
-Priority follows `docs/INTELLIGENCE_LAYER.md`: scores 0–30 are low, 31–60 medium, 61–80 high, and 81+ critical. A fire-alarm score of 40 is therefore medium; the conflicting assertion in the original test plan is superseded by the explicit rule table. Assignment and Start Work are separate steps, as specified in the manual success scenario.
+Administrators and building managers can also run the lifecycle. Inspection managers report and review issues; asset managers maintain registries and review issues; technicians see assigned work. See `docs/SECURITY.md` for the enforced role matrix.
+
+Priority follows `docs/INTELLIGENCE_LAYER.md`: 0–30 low, 31–60 medium, 61–80 high, and 81+ critical. A fire-alarm score of 40 is medium. Assignment and Start Work remain separate steps.
 
 ## Deploy
 
-Public shared demo: https://building-mms.vercel.app. The GitHub integration is connected; pushes to `main` publish production updates.
+Production: https://building-mms.vercel.app. Commit and push to `main`; Vercel deploys through the connected GitHub integration. Do not deploy local files with the Vercel CLI. The commit identity is pinned to jhacheo's GitHub noreply email.
 
-Commit and push to `main`; Vercel deploys through its GitHub integration. The Vercel GitHub application must have repository access and the project must be connected to `jhacheo/building-mms`. Do not deploy local files with the Vercel CLI. The commit identity is pinned to jhacheo's GitHub noreply email.
+The multi-tenant release supersedes the earlier shared public demo. Authentication and database isolation are required before private maintenance data is entered. Verification results are recorded in `docs/TEST_PLAN.md` after execution.
 
-## v1 boundary
 
-This is the shared public demo specified by the PRD. Use demo data. Sprint 4 (authentication, roles and owner isolation) remains the later lock-down phase and must precede private production data.

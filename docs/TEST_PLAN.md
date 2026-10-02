@@ -39,3 +39,43 @@
 - Vercel GitHub application installed with access limited to this repository; `cjh-abc/building-mms` connected to `jhacheo/building-mms` on 2 October 2026.
 - Public production release at https://building-mms.vercel.app returns the working app without authentication. Vercel build, lint and TypeScript validation pass.
 - Live browser verification: reported HVAC issue WO-3E82D4, assigned John, started work and resolved it. First response and resolution were under one minute; the weekly dashboard shows the resolved record and its activity history persists.
+
+## Multi-tenant release — acceptance checks
+
+The former no-login demo scenario above is historical. The current workflow requires a verified user and an organization membership, retaining the same report → assign → start → resolve → weekly status job.
+
+Database test: run `node scripts/test-tenancy.cjs`, then execute the emitted SQL in the project SQL editor or a privileged PostgreSQL connection. It is one transaction ending in `rollback`; do not remove the rollback. Any assertion failure raises `FAIL`. The test is authorization-focused rather than a replacement for browser Auth verification.
+
+- Anonymous access to maintenance records and organization creation is denied.
+- Tenant B cannot discover, update, delete or insert Tenant A's data even with a known UUID.
+- Composite property and asset foreign keys reject cross-organization links.
+- Reporter names and audit headers cannot impersonate another user.
+- An inspection manager can report but cannot manage registries or add an administrator.
+- Assignment to an outside user and start-before-assignment are rejected.
+- A technician sees only assigned work and cannot edit or reassign it.
+- Assigned technician starts and resolves the HVAC issue with stable, populated timings under 24 hours.
+- Audit update/delete is denied; lifecycle events retain the authenticated actor.
+- Asset managers can maintain registries but cannot edit work-order details.
+- A user who belongs to both tenants can filter each workspace while ownership remains immutable.
+- Direct membership mutation and role escalation are denied.
+
+Browser acceptance:
+
+1. Signed-out production requests show login, and protected route requests never render organization data.
+2. Sign up and verify the account email, sign in, and create an organization. Its registry starts empty.
+3. Add a second verified account by email and choose the required role. Confirm the member can sign in to the same workspace.
+4. Create a property and HVAC asset; report the PRD issue as an inspector, assign as a manager, and complete it as the assigned technician.
+5. Check Weekly Status and the actor names in activity history.
+6. Create or join a second organization and switch between them; records and counts follow the selected workspace after refresh.
+7. Sign out, refresh protected routes, and verify the session no longer grants access.
+
+Record actual execution and deployment results below after these checks pass; do not mark planned checks as verified.
+
+## Verified multi-tenant database and local app — 2 October 2026
+
+- The multi-tenant migration was applied to the provisioned Supabase database through its SQL editor.
+- The complete rollback SQL authorization harness passed: anonymous lockdown, cross-organization access and linkage rejection, role restrictions, audit integrity, assigned-technician lifecycle, multi-membership filtering and immutable organization ownership. All test fixtures were rolled back.
+- Local production build, TypeScript and ESLint passed after the authenticated data-layer and role-aware UI integration.
+- Local browser sign-in, empty-account onboarding, organization creation and property persistence were verified. Creating a second organization starts with an empty registry.
+- Production publication and the remaining real-session browser acceptance checks are still pending at this point.
+

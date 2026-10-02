@@ -4,6 +4,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
   const supabaseResponse = NextResponse.next({ request });
+  // Never share an authenticated response (including refreshed cookies) through a CDN.
+  supabaseResponse.headers.set("Cache-Control", "private, no-store");
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -34,6 +36,7 @@ export async function updateSession(request: NextRequest) {
             request.cookies.set(name, value),
           );
           response = NextResponse.next({ request });
+          response.headers.set("Cache-Control", "private, no-store");
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options),
           );

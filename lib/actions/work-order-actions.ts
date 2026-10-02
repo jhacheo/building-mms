@@ -1,4 +1,5 @@
 "use server";
+import { requireTenant } from "@/lib/auth/tenant";
 import { revalidatePath } from "next/cache";
 import { saveWorkOrder, deleteWorkOrder } from "@/lib/data/work-orders";
 import { saveProperty, deleteProperty } from "@/lib/data/properties";
@@ -25,15 +26,31 @@ export async function mutate(
   f: FormData,
 ): Promise<{ ok: boolean; error?: string }> {
   try {
-    const id = uuid(text(f, "id")),
-      actor = text(f, "actor") || "Demo manager";
+    const context = await requireTenant();
+    const id = uuid(text(f, "id"));
+    const manager = ["admin", "building_manager"].includes(context.role);
+    const registry = manager || context.role === "asset_manager";
+    if ((kind.includes("property") || kind.includes("asset")) && !registry)
+      throw new Error("Your role cannot manage registries.");
+    if (["assign", "delete-order"].includes(kind) && !manager)
+      throw new Error("Only managers can assign or delete issues.");
+    if (
+      kind === "order" &&
+      !(manager || (!id && context.role === "inspection_manager"))
+    )
+      throw new Error("Your role cannot edit issues.");
+    if (
+      ["start", "resolve"].includes(kind) &&
+      !(manager || context.role === "technician")
+    )
+      throw new Error("Your role cannot change issue status.");
     if (kind.startsWith("delete-")) {
       if (!id) throw new Error("Record is required.");
       if (f.get("confirmed") !== "yes")
         throw new Error("Confirm deletion first.");
       if (kind === "delete-property") await deleteProperty(id);
       else if (kind === "delete-asset") await deleteAsset(id);
-      else if (kind === "delete-order") await deleteWorkOrder(id, actor);
+      else if (kind === "delete-order") await deleteWorkOrder(id);
       else throw new Error("Unknown action.");
     } else if (kind === "property") {
       const floors = Number(f.get("floors")),
@@ -83,29 +100,23 @@ export async function mutate(
       }
       await saveAsset(id, v);
     } else if (kind === "order")
-      await saveWorkOrder(
-        id,
-        {
-          title: text(f, "title", true),
-          description: text(f, "description"),
-          property_id: uuid(text(f, "property_id", true)),
-          asset_id: uuid(text(f, "asset_id")),
-          reported_by_name: text(f, "reported_by_name", true),
-        },
-        actor,
-      );
+      await saveWorkOrder(id, {
+        title: text(f, "title", true),
+        description: text(f, "description"),
+        property_id: uuid(text(f, "property_id", true)),
+        asset_id: uuid(text(f, "asset_id")),
+      });
     else if (["assign", "start", "resolve"].includes(kind)) {
       if (!id) throw new Error("Work order is required.");
       const v: Record<string, unknown> = {};
-      if (kind === "assign")
-        v.assigned_to_name = text(f, "assigned_to_name", true);
+      if (kind === "assign") v.assigned_to = uuid(text(f, "assigned_to", true));
       if (kind === "start") v.status = "wip";
       if (kind === "resolve") {
         if (f.get("confirmed") !== "yes")
           throw new Error("Confirm that the issue is resolved.");
         v.status = "resolved";
       }
-      await saveWorkOrder(id, v, actor);
+      await saveWorkOrder(id, v);
     } else throw new Error("Unknown action.");
     revalidatePath("/", "layout");
     return { ok: true };

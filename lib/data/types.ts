@@ -33,6 +33,7 @@ export type WorkOrder = {
   priority_confidence: number;
   priority_review_status: string;
   reported_by_name: string | null;
+  assigned_to: string | null;
   assigned_to_name: string | null;
   created_at: string;
   responded_at: string | null;

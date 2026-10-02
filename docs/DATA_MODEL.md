@@ -55,3 +55,20 @@
 
 ## RLS (v1 — permissive)
 All tables: public read/write for demo. Lock-down sprint replaces with `auth.uid() = user_id`.
+
+## Multi-tenant release
+
+The organization is the data boundary. A user can belong to several organizations with a different role in each; `user_id` ownership alone is insufficient for shared maintenance teams.
+
+| Table | Organization fields and constraints |
+|---|---|
+| tenants | UUID `id`, `name`, `created_by` referencing Auth, creation time |
+| tenant_members | Composite key `(tenant_id, user_id)`, role, display name; membership and roles managed by authorized RPCs |
+| properties | Required `tenant_id`, unique `(id, tenant_id)` |
+| assets | Required `tenant_id`; composite `(property_id, tenant_id)` reference to properties |
+| work_orders | Required `tenant_id`; composite property and asset references; `reported_by` authenticated UUID; `assigned_to` references a member of the same organization |
+| audit_logs | Required `tenant_id`; `actor_id` authenticated UUID; authoritative member display name |
+
+`create_tenant(tenant_name, member_name)` creates an organization and its first administrator atomically. `add_tenant_member(target_tenant, member_email, member_role)` adds an existing email-verified account after checking that the caller is an administrator. `refresh_tenant_scores(target_tenant)` checks membership and refreshes authoritative age-based priority scores without granting arbitrary work-order mutation.
+
+Role policies are specified in `SECURITY.md`. Every core row has an immutable organization ID. The original public-demo policy description above is historical and is superseded by this release. Existing demo rows are preserved in a legacy organization with no memberships, rather than assigned to the first person who registers.

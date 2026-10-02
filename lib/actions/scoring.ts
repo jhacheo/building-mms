@@ -1,21 +1,20 @@
-import { db, check } from "@/lib/data/db";
-// SQL trigger is the authoritative scorer; this refreshes time-dependent rules.
+import { tenantDb, check } from "@/lib/data/db";
+export async function refreshPendingScores() {
+  const { client, tenantId } = await tenantDb();
+  const { error } = await client.rpc("refresh_tenant_scores", {
+    target_tenant: tenantId,
+  });
+  check(error);
+}
 export async function score_work_order(orderId: string) {
-  const { data, error } = await db()
+  await refreshPendingScores();
+  const { client, tenantId } = await tenantDb();
+  const { data, error } = await client
     .from("work_orders")
-    .update({ priority_source: "rule_engine" })
+    .select("*")
+    .eq("tenant_id", tenantId)
     .eq("id", orderId)
-    .select()
     .single();
   check(error);
   return data;
-}
-export async function refreshPendingScores() {
-  const cutoff = new Date(Date.now() - 48 * 3600000).toISOString();
-  const { error } = await db()
-    .from("work_orders")
-    .update({ priority_source: "rule_engine" })
-    .eq("status", "pending")
-    .lt("created_at", cutoff);
-  check(error);
 }

@@ -1,4 +1,6 @@
 "use client";
+import { signOut } from "@/lib/auth/actions";
+import type { TenantMember, TenantRole } from "@/lib/auth/tenant";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useEffect, useRef } from "react";
@@ -93,12 +95,25 @@ export default function MaintenanceApp({
   section,
   data,
   loadError,
+  workspace,
 }: {
   section: string;
   data: Snapshot;
   loadError?: string;
+  workspace: {
+    id: string;
+    name: string;
+    role: TenantRole;
+    userId: string;
+    email: string;
+    members: TenantMember[];
+  };
 }) {
   const router = useRouter();
+  const manager = ["admin", "building_manager"].includes(workspace.role);
+  const registry = manager || workspace.role === "asset_manager";
+  const report = manager || workspace.role === "inspection_manager";
+  const canWork = manager || workspace.role === "technician";
   const [pending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
   const [property, setProperty] = useState("all");
@@ -259,15 +274,22 @@ export default function MaintenanceApp({
               )}
             </Link>
           ))}
+          <Link href="/workspace" className="nav-item">
+            Team & workspaces
+          </Link>
+          <form action={signOut}>
+            <button className="text-button">Sign out</button>
+          </form>
         </nav>
         <div className="sidebar-note">
-          <span className="live-dot" /> Demo workspace
-          <p>A shared space to explore your maintenance workflow.</p>
+          <span className="live-dot" /> {workspace.name}
+          <p>{label(workspace.role)} workspace</p>
         </div>
         <div className="sidebar-footer">
           <span className="avatar">BM</span>
           <div>
-            Building manager<small>Operations team</small>
+            {workspace.email}
+            <small>{label(workspace.role)}</small>
           </div>
         </div>
       </aside>
@@ -277,7 +299,7 @@ export default function MaintenanceApp({
             Workspace <span>/</span> {heading}
           </span>
           <span className="demo-pill">
-            <span className="live-dot" /> Live demo
+            <Link href="/workspace">{workspace.name} · Team & workspaces</Link>
           </span>
         </header>
         <main>
@@ -287,32 +309,34 @@ export default function MaintenanceApp({
               <h1>{heading}</h1>
               <p>{subtitle[section]}</p>
             </div>
-            {section !== "weekly-status" && (
-              <button
-                className="button primary"
-                onClick={() =>
-                  open(
-                    section === "properties"
-                      ? "property"
-                      : section === "assets"
-                        ? "asset"
-                        : "order",
-                  )
-                }
-                disabled={
-                  !!loadError ||
-                  ((section === "assets" || section === "work-orders") &&
-                    !data.properties.length)
-                }
-              >
-                <Icon name="plus" />
-                {section === "properties"
-                  ? "Add Property"
-                  : section === "assets"
-                    ? "Add Asset"
-                    : "New Issue"}
-              </button>
-            )}
+            {section !== "weekly-status" &&
+              ((section === "work-orders" && report) ||
+                (["properties", "assets"].includes(section) && registry)) && (
+                <button
+                  className="button primary"
+                  onClick={() =>
+                    open(
+                      section === "properties"
+                        ? "property"
+                        : section === "assets"
+                          ? "asset"
+                          : "order",
+                    )
+                  }
+                  disabled={
+                    !!loadError ||
+                    ((section === "assets" || section === "work-orders") &&
+                      !data.properties.length)
+                  }
+                >
+                  <Icon name="plus" />
+                  {section === "properties"
+                    ? "Add Property"
+                    : section === "assets"
+                      ? "Add Asset"
+                      : "New Issue"}
+                </button>
+              )}
           </div>
           {notice && (
             <div className="toast" role="status">
@@ -544,7 +568,8 @@ export default function MaintenanceApp({
                               className="text-button"
                               onClick={() => open("property", p)}
                             >
-                              View & edit <Icon name="arrow" size={16} />
+                              {registry ? "View & edit" : "View details"}{" "}
+                              <Icon name="arrow" size={16} />
                             </button>
                           </div>
                         </div>
@@ -820,7 +845,7 @@ export default function MaintenanceApp({
                 <dd>{hours(current.resolution_time_hours)}</dd>
               </div>
             </dl>
-            {current.status !== "resolved" && (
+            {manager && current.status !== "resolved" && (
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -829,19 +854,34 @@ export default function MaintenanceApp({
                 className="assignment-form"
               >
                 <input type="hidden" name="id" value={current.id} />
-                <Field
-                  name="assigned_to_name"
-                  title="Assigned technician"
-                  value={current.assigned_to_name}
-                  required
-                />
+                <label className="field">
+                  <span>Assigned technician *</span>
+                  <select
+                    name="assigned_to"
+                    required
+                    defaultValue={current.assigned_to || ""}
+                  >
+                    <option value="">Choose a team member</option>
+                    {workspace.members
+                      .filter((m) =>
+                        ["technician", "admin", "building_manager"].includes(
+                          m.role,
+                        ),
+                      )
+                      .map((m) => (
+                        <option key={m.user_id} value={m.user_id}>
+                          {m.display_name} · {label(m.role)}
+                        </option>
+                      ))}
+                  </select>
+                </label>
                 <button className="button secondary" disabled={pending}>
                   {pending ? "Saving…" : "Save assignment"}
                 </button>
               </form>
             )}
             <div className="detail-actions">
-              {current.status === "pending" && (
+              {canWork && current.status === "pending" && (
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -851,14 +891,14 @@ export default function MaintenanceApp({
                   <input type="hidden" name="id" value={current.id} />
                   <button
                     className="button primary"
-                    disabled={pending || !current.assigned_to_name}
+                    disabled={pending || !current.assigned_to}
                   >
                     {pending ? "Saving…" : "Start Work"}
                     <Icon name="arrow" size={18} />
                   </button>
                 </form>
               )}
-              {current.status === "wip" && (
+              {canWork && current.status === "wip" && (
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -887,13 +927,15 @@ export default function MaintenanceApp({
                   {hours(current.resolution_time_hours)}
                 </div>
               )}
-              <button
-                className="text-button"
-                disabled={pending}
-                onClick={() => open("order", current)}
-              >
-                Edit issue
-              </button>
+              {manager && (
+                <button
+                  className="text-button"
+                  disabled={pending}
+                  onClick={() => open("order", current)}
+                >
+                  Edit issue
+                </button>
+              )}
             </div>
             <h3 className="activity-title">Activity history</h3>
             <ol className="activity-list">
@@ -912,22 +954,29 @@ export default function MaintenanceApp({
                   </li>
                 ))}
             </ol>
-            <form
-              className="danger-zone"
-              onSubmit={(e) => {
-                e.preventDefault();
-                run("delete-order", new FormData(e.currentTarget));
-              }}
-            >
-              <input type="hidden" name="id" value={current.id} />
-              <label className="confirm-label">
-                <input type="checkbox" required name="confirmed" value="yes" />{" "}
-                Confirm permanent deletion of this issue.
-              </label>
-              <button className="button danger" disabled={pending}>
-                Delete work order
-              </button>
-            </form>
+            {manager && (
+              <form
+                className="danger-zone"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  run("delete-order", new FormData(e.currentTarget));
+                }}
+              >
+                <input type="hidden" name="id" value={current.id} />
+                <label className="confirm-label">
+                  <input
+                    type="checkbox"
+                    required
+                    name="confirmed"
+                    value="yes"
+                  />{" "}
+                  Confirm permanent deletion of this issue.
+                </label>
+                <button className="button danger" disabled={pending}>
+                  Delete work order
+                </button>
+              </form>
+            )}
           </div>
         )}
         {modal && (
@@ -938,177 +987,184 @@ export default function MaintenanceApp({
             }}
             className="record-form"
           >
-            <input type="hidden" name="id" value={modal.record?.id || ""} />
-            {modal.kind === "property" && (
-              <>
-                <Field
-                  name="name"
-                  title="Property name"
-                  value={(modal.record as Property)?.name}
-                  required
-                />
-                <Field
-                  name="address"
-                  title="Address"
-                  value={(modal.record as Property)?.address}
-                />
-                <div className="form-row">
+            <fieldset
+              disabled={modal.kind !== "order" && !registry}
+              style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
+            >
+              <input type="hidden" name="id" value={modal.record?.id || ""} />
+              {modal.kind === "property" && (
+                <>
                   <Field
-                    name="floors"
-                    title="Floors"
-                    type="number"
-                    min={1}
-                    value={(modal.record as Property)?.floors || 1}
+                    name="name"
+                    title="Property name"
+                    value={(modal.record as Property)?.name}
                     required
                   />
                   <Field
-                    name="units"
-                    title="Units"
-                    type="number"
-                    min={1}
-                    value={(modal.record as Property)?.units || 1}
-                    required
+                    name="address"
+                    title="Address"
+                    value={(modal.record as Property)?.address}
                   />
-                </div>
-              </>
-            )}
-            {(modal.kind === "asset" || modal.kind === "order") && (
-              <label className="field">
-                <span>Property *</span>
-                <select
-                  name="property_id"
-                  required
-                  value={formProperty}
-                  onChange={(e) => setFormProperty(e.target.value)}
-                >
-                  {data.properties.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-            {modal.kind === "asset" && (
-              <>
-                <Field
-                  name="name"
-                  title="Asset name"
-                  value={(modal.record as Asset)?.name}
-                  required
-                />
+                  <div className="form-row">
+                    <Field
+                      name="floors"
+                      title="Floors"
+                      type="number"
+                      min={1}
+                      value={(modal.record as Property)?.floors || 1}
+                      required
+                    />
+                    <Field
+                      name="units"
+                      title="Units"
+                      type="number"
+                      min={1}
+                      value={(modal.record as Property)?.units || 1}
+                      required
+                    />
+                  </div>
+                </>
+              )}
+              {(modal.kind === "asset" || modal.kind === "order") && (
                 <label className="field">
-                  <span>Type *</span>
+                  <span>Property *</span>
                   <select
-                    name="type"
-                    defaultValue={(modal.record as Asset)?.type || "HVAC"}
+                    name="property_id"
+                    required
+                    value={formProperty}
+                    onChange={(e) => setFormProperty(e.target.value)}
                   >
-                    {types.map((t) => (
-                      <option key={t} value={t}>
-                        {label(t)}
+                    {data.properties.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
                       </option>
                     ))}
                   </select>
                 </label>
-                <div className="form-row">
+              )}
+              {modal.kind === "asset" && (
+                <>
                   <Field
-                    name="model_number"
-                    title="Model number"
-                    value={(modal.record as Asset)?.model_number}
+                    name="name"
+                    title="Asset name"
+                    value={(modal.record as Asset)?.name}
+                    required
                   />
-                  <Field
-                    name="serial_number"
-                    title="Serial number"
-                    value={(modal.record as Asset)?.serial_number}
-                  />
-                </div>
-                <div className="form-row">
-                  <Field
-                    name="location_floor"
-                    title="Floor"
-                    value={(modal.record as Asset)?.location_floor}
-                  />
-                  <Field
-                    name="location_unit"
-                    title="Unit / location"
-                    value={(modal.record as Asset)?.location_unit}
-                  />
-                </div>
-                <div className="form-row">
-                  <Field
-                    name="purchase_date"
-                    title="Purchase date"
-                    type="date"
-                    value={(modal.record as Asset)?.purchase_date}
-                  />
-                  <Field
-                    name="install_date"
-                    title="Installation date"
-                    type="date"
-                    value={(modal.record as Asset)?.install_date}
-                  />
-                </div>
-                <Field
-                  name="warranty_expiry"
-                  title="Warranty expiry"
-                  type="date"
-                  value={(modal.record as Asset)?.warranty_expiry}
-                />
-              </>
-            )}
-            {modal.kind === "order" && (
-              <>
-                <Field
-                  name="title"
-                  title="Issue title"
-                  value={(modal.record as WorkOrder)?.title}
-                  required
-                />
-                <label className="field">
-                  <span>Description</span>
-                  <textarea
-                    name="description"
-                    rows={4}
-                    maxLength={4000}
-                    defaultValue={
-                      (modal.record as WorkOrder)?.description || ""
-                    }
-                    placeholder="What happened? Include the floor, unit and symptoms."
-                  />
-                </label>
-                <label className="field">
-                  <span>Linked asset</span>
-                  <select
-                    name="asset_id"
-                    key={formProperty}
-                    defaultValue={
-                      (modal.record as WorkOrder)?.property_id === formProperty
-                        ? (modal.record as WorkOrder)?.asset_id || ""
-                        : ""
-                    }
-                  >
-                    <option value="">General issue / no asset</option>
-                    {data.assets
-                      .filter((a) => a.property_id === formProperty)
-                      .map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.name} · {label(a.type)}
+                  <label className="field">
+                    <span>Type *</span>
+                    <select
+                      name="type"
+                      defaultValue={(modal.record as Asset)?.type || "HVAC"}
+                    >
+                      {types.map((t) => (
+                        <option key={t} value={t}>
+                          {label(t)}
                         </option>
                       ))}
-                  </select>
-                </label>
-                <Field
-                  name="reported_by_name"
-                  title="Reported by"
-                  value={(modal.record as WorkOrder)?.reported_by_name}
-                  required
-                />
-                <p className="form-help">
-                  Priority is calculated automatically from the asset, symptoms
-                  and warranty.
-                </p>
-              </>
-            )}
+                    </select>
+                  </label>
+                  <div className="form-row">
+                    <Field
+                      name="model_number"
+                      title="Model number"
+                      value={(modal.record as Asset)?.model_number}
+                    />
+                    <Field
+                      name="serial_number"
+                      title="Serial number"
+                      value={(modal.record as Asset)?.serial_number}
+                    />
+                  </div>
+                  <div className="form-row">
+                    <Field
+                      name="location_floor"
+                      title="Floor"
+                      value={(modal.record as Asset)?.location_floor}
+                    />
+                    <Field
+                      name="location_unit"
+                      title="Unit / location"
+                      value={(modal.record as Asset)?.location_unit}
+                    />
+                  </div>
+                  <div className="form-row">
+                    <Field
+                      name="purchase_date"
+                      title="Purchase date"
+                      type="date"
+                      value={(modal.record as Asset)?.purchase_date}
+                    />
+                    <Field
+                      name="install_date"
+                      title="Installation date"
+                      type="date"
+                      value={(modal.record as Asset)?.install_date}
+                    />
+                  </div>
+                  <Field
+                    name="warranty_expiry"
+                    title="Warranty expiry"
+                    type="date"
+                    value={(modal.record as Asset)?.warranty_expiry}
+                  />
+                </>
+              )}
+              {modal.kind === "order" && (
+                <>
+                  <Field
+                    name="title"
+                    title="Issue title"
+                    value={(modal.record as WorkOrder)?.title}
+                    required
+                  />
+                  <label className="field">
+                    <span>Description</span>
+                    <textarea
+                      name="description"
+                      rows={4}
+                      maxLength={4000}
+                      defaultValue={
+                        (modal.record as WorkOrder)?.description || ""
+                      }
+                      placeholder="What happened? Include the floor, unit and symptoms."
+                    />
+                  </label>
+                  <label className="field">
+                    <span>Linked asset</span>
+                    <select
+                      name="asset_id"
+                      key={formProperty}
+                      defaultValue={
+                        (modal.record as WorkOrder)?.property_id ===
+                        formProperty
+                          ? (modal.record as WorkOrder)?.asset_id || ""
+                          : ""
+                      }
+                    >
+                      <option value="">General issue / no asset</option>
+                      {data.assets
+                        .filter((a) => a.property_id === formProperty)
+                        .map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.name} · {label(a.type)}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  <p className="form-help">
+                    Reported as{" "}
+                    {workspace.members.find(
+                      (m) => m.user_id === workspace.userId,
+                    )?.display_name || workspace.email}
+                    .
+                  </p>
+                  <p className="form-help">
+                    Priority is calculated automatically from the asset,
+                    symptoms and warranty.
+                  </p>
+                </>
+              )}
+            </fieldset>
             <div className="form-actions">
               <button
                 type="button"
@@ -1118,19 +1174,21 @@ export default function MaintenanceApp({
               >
                 Cancel
               </button>
-              <button className="button primary" disabled={pending}>
-                {pending
-                  ? "Saving…"
-                  : modal.record
-                    ? "Save Changes"
-                    : modal.kind === "order"
-                      ? "Create Issue"
-                      : "Save " + label(modal.kind)}
-              </button>
+              {(modal.kind === "order" || registry) && (
+                <button className="button primary" disabled={pending}>
+                  {pending
+                    ? "Saving…"
+                    : modal.record
+                      ? "Save Changes"
+                      : modal.kind === "order"
+                        ? "Create Issue"
+                        : "Save " + label(modal.kind)}
+                </button>
+              )}
             </div>
           </form>
         )}
-        {modal?.record && modal.kind !== "order" && (
+        {registry && modal?.record && modal.kind !== "order" && (
           <form
             className="danger-zone"
             onSubmit={(e) => {
