@@ -9,9 +9,9 @@ export default async function Signup() {
   } = await client.auth.getUser();
   if (user && !user.is_anonymous) redirect("/");
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-5 py-12">
+    <main className="account-page mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-5 py-12">
       <div>
-        <p className="font-semibold text-[#176e57]">BUILDING MMS</p>
+        <p className="font-semibold text-[#1d4ed8]">BUILDING MMS</p>
         <h1 className="mt-3">Create your account</h1>
         <p className="mt-3">
           Manage maintenance with your team. Each workspace keeps its records

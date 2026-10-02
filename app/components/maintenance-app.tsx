@@ -2,6 +2,7 @@
 import { signOut } from "@/lib/auth/actions";
 import type { TenantMember, TenantRole } from "@/lib/auth/tenant";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useEffect, useRef } from "react";
 import { mutate } from "@/lib/actions/work-order-actions";
@@ -220,7 +221,7 @@ export default function MaintenanceApp({
   };
   const orderCard = (o: WorkOrder) => (
     <button
-      className="order-card"
+      className={`order-card priority-${o.priority}`}
       key={o.id}
       onClick={() => {
         setError("");
@@ -238,7 +239,15 @@ export default function MaintenanceApp({
       </p>
       <div className="order-card-bottom">
         <Badge value={o.status} />
-        <span>
+        <span className="order-assignee">
+          <span className="member-avatar" aria-hidden="true">
+            {(o.assigned_to_name || "?")
+              .split(" ")
+              .map((part) => part[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase()}
+          </span>
           {o.status === "resolved"
             ? `Resolved in ${hours(o.resolution_time_hours)}`
             : o.assigned_to_name || "Unassigned"}{" "}
@@ -248,14 +257,14 @@ export default function MaintenanceApp({
     </button>
   );
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${report ? "has-report" : ""}`}>
       <aside className="sidebar">
         <Link href="/" className="brand">
           <span className="brand-icon">
             <Icon name="building" size={24} />
           </span>
           <span>
-            building<span className="brand-sub">MAINTENANCE WORKSPACE</span>
+            Building MMS<span className="brand-sub">FACILITY OPERATIONS</span>
           </span>
         </Link>
         <div className="nav-label">WORKSPACE</div>
@@ -274,10 +283,10 @@ export default function MaintenanceApp({
               )}
             </Link>
           ))}
-          <Link href="/workspace" className="nav-item">
+          <Link href="/workspace" className="nav-item nav-settings">
             Team & workspaces
           </Link>
-          <form action={signOut}>
+          <form action={signOut} className="nav-signout">
             <button className="text-button">Sign out</button>
           </form>
         </nav>
@@ -286,7 +295,9 @@ export default function MaintenanceApp({
           <p>{label(workspace.role)} workspace</p>
         </div>
         <div className="sidebar-footer">
-          <span className="avatar">BM</span>
+          <span className="avatar">
+            {workspace.email.slice(0, 2).toUpperCase()}
+          </span>
           <div>
             {workspace.email}
             <small>{label(workspace.role)}</small>
@@ -295,18 +306,59 @@ export default function MaintenanceApp({
       </aside>
       <div className="main-shell">
         <header className="topbar">
-          <span className="breadcrumb">
-            Workspace <span>/</span> {heading}
-          </span>
-          <span className="demo-pill">
-            <Link href="/workspace">{workspace.name} · Team & workspaces</Link>
-          </span>
+          <div className="header-section">
+            <Link
+              href="/"
+              className="header-logo"
+              aria-label="Building MMS home"
+            >
+              <Icon name="building" size={23} />
+            </Link>
+            <label className="section-picker">
+              <Icon
+                name={
+                  sections.find((item) => item[0] === section)?.[2] ||
+                  "building"
+                }
+                size={18}
+              />
+              <select
+                aria-label="Navigate to section"
+                value={section}
+                onChange={(event) =>
+                  router.push(
+                    event.target.value === "properties"
+                      ? "/"
+                      : `/${event.target.value}`,
+                  )
+                }
+              >
+                {sections.map(([key, title]) => (
+                  <option key={key} value={key}>
+                    {title}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <Link
+            className="workspace-profile"
+            href="/workspace"
+            aria-label={`Team and workspace settings for ${workspace.name}`}
+          >
+            <span className="workspace-profile-name">{workspace.name}</span>
+            <span className="avatar">
+              {workspace.email.slice(0, 2).toUpperCase()}
+            </span>
+          </Link>
         </header>
         <main>
           <div className="page-heading">
             <div>
               <div className="eyebrow">BUILDING OPERATIONS</div>
-              <h1>{heading}</h1>
+              <h1>
+                {section === "properties" ? "Properties & Hubs" : heading}
+              </h1>
               <p>{subtitle[section]}</p>
             </div>
             {section !== "weekly-status" &&
@@ -515,44 +567,65 @@ export default function MaintenanceApp({
                     .filter((p) => matches(p.name + " " + p.address))
                     .map((p, i) => (
                       <article className="property-card" key={p.id}>
-                        <div className={`property-art art-${i % 3}`}>
-                          <div className="building-shape">
-                            <span />
-                            <span />
-                            <span />
-                            <span />
-                            <span />
-                            <span />
-                            <span />
-                            <span />
-                            <span />
-                          </div>
-                          <span className="art-caption">
-                            PROPERTY {String(i + 1).padStart(2, "0")}
+                        <div className="property-card-header">
+                          <span className="hub-pill">
+                            <Icon name="building" size={14} /> Facility hub
                           </span>
-                          <span className="art-icon">
-                            <Icon name="building" size={28} />
+                          <span className="floor-pill">
+                            {p.floors} floors · {p.units} units
                           </span>
                         </div>
+                        <div className={`property-art art-${i % 3}`}>
+                          <Image
+                            src={`/design/${["tower", "hotel", "campus"][i % 3]}.png`}
+                            alt=""
+                            fill
+                            sizes="(max-width: 760px) 90vw, (max-width: 1150px) 40vw, 30vw"
+                            className="facility-image"
+                          />
+                          <span className="illustration-label">
+                            Illustration
+                          </span>
+                          <div className="facility-caption">
+                            <h3>{p.name}</h3>
+                            <p>
+                              <Icon name="building" size={15} />
+                              {p.address || "No address added"}
+                            </p>
+                          </div>
+                        </div>
                         <div className="property-body">
-                          <h3>{p.name}</h3>
-                          <p>{p.address || "No address added"}</p>
                           <div className="property-meta">
-                            <span>
-                              <b>{p.floors}</b> floors
+                            <span className="metric-critical">
+                              <span>Critical</span>
+                              <b>
+                                {
+                                  active.filter(
+                                    (o) =>
+                                      o.property_id === p.id &&
+                                      o.priority === "critical",
+                                  ).length
+                                }
+                              </b>
                             </span>
-                            <span>
-                              <b>{p.units}</b> units
+                            <span className="metric-active">
+                              <span>Active</span>
+                              <b>
+                                {
+                                  active.filter((o) => o.property_id === p.id)
+                                    .length
+                                }
+                              </b>
                             </span>
-                            <span>
+                            <span className="metric-assets">
+                              <span>Assets</span>
                               <b>
                                 {
                                   data.assets.filter(
                                     (a) => a.property_id === p.id,
                                   ).length
                                 }
-                              </b>{" "}
-                              assets
+                              </b>
                             </span>
                           </div>
                           <div className="property-status">
@@ -770,6 +843,16 @@ export default function MaintenanceApp({
           </footer>
         </main>
       </div>
+      {report && (
+        <button
+          className="mobile-report"
+          aria-label="Report a new issue"
+          disabled={!!loadError || !data.properties.length}
+          onClick={() => open("order")}
+        >
+          <Icon name="plus" size={30} />
+        </button>
+      )}
       <dialog
         ref={dialogRef}
         onCancel={(e) => {
@@ -815,6 +898,31 @@ export default function MaintenanceApp({
               <Badge value={current.status} />
               <Badge value={current.priority} />
               <span>Score {current.priority_score} · Rule engine</span>
+            </div>
+            <div className="workflow-progress">
+              <div>
+                <span>Workflow stage</span>
+                <b>
+                  {current.status === "resolved"
+                    ? "3"
+                    : current.status === "wip"
+                      ? "2"
+                      : "1"}{" "}
+                  of 3
+                </b>
+              </div>
+              <progress
+                aria-label="Work order lifecycle stage"
+                max={3}
+                value={
+                  current.status === "resolved"
+                    ? 3
+                    : current.status === "wip"
+                      ? 2
+                      : 1
+                }
+              />
+              <p>Reported → In progress → Resolved</p>
             </div>
             <p className="detail-description">
               {current.description || "No additional description."}

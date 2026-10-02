@@ -56,7 +56,7 @@ export function AccountForm({ mode }: { mode: "login" | "signup" }) {
       )}
       <Feedback state={state} />
       <button
-        className="rounded-lg bg-[#176e57] px-5 py-3 font-semibold text-white"
+        className="rounded-lg bg-[#1d4ed8] px-5 py-3 font-semibold text-white"
         disabled={pending}
       >
         {pending
@@ -68,7 +68,7 @@ export function AccountForm({ mode }: { mode: "login" | "signup" }) {
       <p>
         {mode === "login" ? "New to Building MMS? " : "Already registered? "}
         <Link
-          className="font-semibold text-[#176e57] underline"
+          className="font-semibold text-[#1d4ed8] underline"
           href={mode === "login" ? "/signup" : "/login"}
         >
           {mode === "login" ? "Create an account" : "Sign in"}
@@ -102,7 +102,7 @@ export function CreateWorkspaceForm() {
       </label>
       <Feedback state={state} />
       <button
-        className="rounded-lg bg-[#176e57] px-5 py-3 font-semibold text-white"
+        className="rounded-lg bg-[#1d4ed8] px-5 py-3 font-semibold text-white"
         disabled={pending}
       >
         {pending ? "Creating…" : "Create workspace"}
@@ -142,7 +142,7 @@ export function AddMemberForm() {
       </label>
       <Feedback state={state} />
       <button
-        className="rounded-lg bg-[#176e57] px-5 py-3 font-semibold text-white"
+        className="rounded-lg bg-[#1d4ed8] px-5 py-3 font-semibold text-white"
         disabled={pending}
       >
         {pending ? "Adding…" : "Add team member"}

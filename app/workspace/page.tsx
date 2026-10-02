@@ -11,11 +11,11 @@ export default async function WorkspaceSettings() {
   return (
     <main className="mx-auto max-w-3xl space-y-8 px-5 py-8">
       <header className="flex flex-wrap items-center justify-between gap-4">
-        <Link href="/" className="font-semibold text-[#176e57]">
+        <Link href="/" className="font-semibold text-[#1d4ed8]">
           ← Maintenance
         </Link>
         <form action={signOut}>
-          <button className="text-[#176e57] underline">Sign out</button>
+          <button className="text-[#1d4ed8] underline">Sign out</button>
         </form>
       </header>
       <div>
@@ -24,7 +24,7 @@ export default async function WorkspaceSettings() {
           {tenant.name} · {role.replaceAll("_", " ")} · {user.email}
         </p>
       </div>
-      <section className="space-y-4 rounded-xl border border-[#e0e7e6] bg-white p-5">
+      <section className="space-y-4 rounded-xl border border-[#e2e8f0] bg-white p-5">
         <h2>Your workspaces</h2>
         <form action={selectTenant} className="flex flex-wrap items-end gap-3">
           <label className="field grow">
@@ -37,7 +37,7 @@ export default async function WorkspaceSettings() {
               ))}
             </select>
           </label>
-          <button className="rounded-lg bg-[#176e57] px-5 py-3 font-semibold text-white">
+          <button className="rounded-lg bg-[#1d4ed8] px-5 py-3 font-semibold text-white">
             Switch workspace
           </button>
         </form>
@@ -46,9 +46,9 @@ export default async function WorkspaceSettings() {
           selected workspace.
         </p>
       </section>
-      <section className="space-y-4 rounded-xl border border-[#e0e7e6] bg-white p-5">
+      <section className="space-y-4 rounded-xl border border-[#e2e8f0] bg-white p-5">
         <h2>Team members</h2>
-        <ul className="divide-y divide-[#e0e7e6]">
+        <ul className="divide-y divide-[#e2e8f0]">
           {members.map((member) => (
             <li
               key={member.user_id}
@@ -58,7 +58,7 @@ export default async function WorkspaceSettings() {
                 {member.display_name || "Team member"}
                 {member.user_id === user.id ? " (you)" : ""}
               </span>
-              <span className="text-[#6b7d83]">
+              <span className="text-[#475569]">
                 {member.role.replaceAll("_", " ")}
               </span>
             </li>
@@ -66,7 +66,7 @@ export default async function WorkspaceSettings() {
         </ul>
         {role === "admin" && <AddMemberForm />}
       </section>
-      <section className="space-y-4 rounded-xl border border-[#e0e7e6] bg-white p-5">
+      <section className="space-y-4 rounded-xl border border-[#e2e8f0] bg-white p-5">
         <h2>Create another workspace</h2>
         <p>
           You will become its administrator. This creates an empty, separate
