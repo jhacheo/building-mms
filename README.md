@@ -1,41 +1,41 @@
-# vibe-stack-supabase
+# Building MMS
 
-Next.js 15 + Supabase starter for shipping vibe-coded apps fast. Clone, provision, build.
+A mobile-first, database-backed maintenance workspace for properties, machinery, work orders and weekly status. The homepage is the working shared demo; no login is required for v1.
 
-## Stack
+## Run locally
 
-| Layer | Choice |
-|---|---|
-| Framework | Next.js 15 (App Router, React 19, Server Actions) |
-| Language | TypeScript strict |
-| Styles | Tailwind CSS v4 (CSS-first, no config file) |
-| Auth + DB | Supabase (`@supabase/ssr`) |
-| Package manager | Bun |
-| Deploy | Vercel |
+Use Node.js 24 and pnpm 11.19.0. Link the provisioned Vercel project and run `vercel env pull .env.local`. Required environment variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Never commit environment files.
 
-## Quick start
-
-```bash
-bun install
-cp .env.example .env.local   # fill in your Supabase keys
-bun dev
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
+pnpm typecheck
+pnpm build
+pnpm test:db
 ```
 
-Open http://localhost:3000. Edit `app/page.tsx` to start building.
+`test:db` performs the real lifecycle against Supabase using the demo key. It creates temporary properties, assets and issues, checks scoring, timing, constraints and audit access, then removes the test records. Append-only audit events remain as evidence.
 
-## Provisioning a new project
+## Database
 
-Use the `/new-vibe-project <name>` skill (see `claude-dotfiles` repo) which:
-1. Clones this template and renames it
-2. Creates a new GitHub repo and pushes
-3. Creates a Supabase project and injects URL + anon key
-4. Creates a Vercel project linked to the GitHub repo
-5. Triggers first deploy and returns the preview URL
+The initial schema and editable demo seeds live in `supabase/migrations`. They were applied to the provisioned project `idzuedlnakwrqphjmjxi` through the Supabase SQL editor on 2 October 2026. Both scripts are idempotent for initial setup. Do not reapply the demo seed to reset an active workspace.
 
-## Working with AI
+Scoring and transition triggers run atomically with database writes. Starting work requires an assigned technician; resolution requires WIP. First-response and resolution timestamps remain stable after edits. Audit logs can be read by the demo, but only the private trigger can append records. Deleting linked properties/assets is blocked until their dependent records are removed.
 
-See [CLAUDE.md](CLAUDE.md) for conventions. This repo is pre-wired for gstack — start with `/office-hours`.
+## Core workflow
 
-## Switching to Neon
+1. Open Work Orders and choose New Issue. Select a property and optional asset, enter symptoms and reporter, then save.
+2. Open the issue, enter a technician and save the assignment.
+3. Choose Start Work. The database records the first response.
+4. Confirm the issue is fixed and choose Resolve Issue. Resolution timing is recorded automatically.
+5. Open Weekly Status. Open issues carry forward; resolved issues appear in the week of resolution. Weeks use Asia/Kuala_Lumpur time, Monday through Sunday.
 
-If you need Postgres without Supabase (e.g. prefer Drizzle ORM + Clerk for auth), a `vibe-stack-neon` variant is planned. For now: fork this and swap `@supabase/ssr` for `drizzle-orm` + `@neondatabase/serverless`, add Clerk or NextAuth.
+Priority follows `docs/INTELLIGENCE_LAYER.md`: scores 0–30 are low, 31–60 medium, 61–80 high, and 81+ critical. A fire-alarm score of 40 is therefore medium; the conflicting assertion in the original test plan is superseded by the explicit rule table. Assignment and Start Work are separate steps, as specified in the manual success scenario.
+
+## Deploy
+
+Commit and push to `main`; Vercel deploys through its GitHub integration. The Vercel GitHub application must have repository access and the project must be connected to `jhacheo/building-mms`. Do not deploy local files with the Vercel CLI. The commit identity is pinned to jhacheo's GitHub noreply email.
+
+## v1 boundary
+
+This is the shared public demo specified by the PRD. Use demo data. Sprint 4 (authentication, roles and owner isolation) remains the later lock-down phase and must precede private production data.

@@ -7,25 +7,28 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:db": "node --env-file=.env.local scripts/test-database.cjs"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.5.0",
-    "@supabase/supabase-js": "^2.45.0",
-    "next": "^15.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "stripe": "^17.0.0"
+    "@supabase/ssr": "0.5.2",
+    "@supabase/supabase-js": "2.117.2",
+    "next": "15.5.27",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "stripe": "17.7.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.0.0",
-    "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "^15.0.0",
-    "tailwindcss": "^4.0.0",
-    "typescript": "^5"
+    "@eslint/eslintrc": "3.3.7",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "22.20.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "15.5.27",
+    "prettier": "3.9.9",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3"
   },
   "packageManager": "pnpm@11.19.0"
 }
