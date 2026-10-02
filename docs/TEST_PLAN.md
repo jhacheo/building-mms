@@ -36,4 +36,6 @@
 - Mobile property and asset create/edit forms persist, including warranty dates.
 - Empty filtered registry and failed linked-asset save show readable states; the failed save leaves records intact.
 - Temporary integration and registry records are removed; audit entries remain append-only.
-- Vercel GitHub application installed with access limited to this repository; `cjh-abc/building-mms` connected to `jhacheo/building-mms` on 2 October 2026. Public release verification follows the Git push.
+- Vercel GitHub application installed with access limited to this repository; `cjh-abc/building-mms` connected to `jhacheo/building-mms` on 2 October 2026.
+- Public production release at https://building-mms.vercel.app returns the working app without authentication. Vercel build, lint and TypeScript validation pass.
+- Live browser verification: reported HVAC issue WO-3E82D4, assigned John, started work and resolved it. First response and resolution were under one minute; the weekly dashboard shows the resolved record and its activity history persists.

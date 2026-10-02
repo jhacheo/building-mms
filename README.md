@@ -34,6 +34,8 @@ Priority follows `docs/INTELLIGENCE_LAYER.md`: scores 0–30 are low, 31–60 me
 
 ## Deploy
 
+Public shared demo: https://building-mms.vercel.app. The GitHub integration is connected; pushes to `main` publish production updates.
+
 Commit and push to `main`; Vercel deploys through its GitHub integration. The Vercel GitHub application must have repository access and the project must be connected to `jhacheo/building-mms`. Do not deploy local files with the Vercel CLI. The commit identity is pinned to jhacheo's GitHub noreply email.
 
 ## v1 boundary
