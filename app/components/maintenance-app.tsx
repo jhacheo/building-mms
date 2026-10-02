@@ -8,7 +8,11 @@ import { useState, useTransition, useEffect, useRef } from "react";
 import { mutate } from "@/lib/actions/work-order-actions";
 import type { Snapshot, Property, Asset, WorkOrder } from "@/lib/data/types";
 import { hours, date, weekStart } from "@/lib/utils/time";
-import { findFacility, sortFacilities } from "@/lib/facilities";
+import {
+  facilityDetails,
+  findFacility,
+  sortFacilities,
+} from "@/lib/facilities";
 const sections = [
   ["properties", "Properties", "building"],
   ["assets", "Assets", "asset"],
@@ -577,7 +581,7 @@ export default function MaintenanceApp({
                             <Icon name="building" size={14} /> Facility hub
                           </span>
                           <span className="floor-pill">
-                            {p.floors} floors · {p.units} units
+                            {facilityDetails(p.name, p.floors, p.units)}
                           </span>
                         </div>
                         <div className={`property-art art-${i % 3}`}>

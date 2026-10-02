@@ -56,6 +56,11 @@ export function findFacility(name: string): Facility | undefined {
   );
 }
 
+export function facilityDetails(name: string, floors: number, units: number) {
+  if (!findFacility(name)) return `${floors} floors · ${units} units`;
+  return `${floors === 1 ? "Floors to confirm" : `${floors} floors`} · ${units === 1 ? "Units to confirm" : `${units} units`}`;
+}
+
 export function sortFacilities<T extends { name: string }>(records: T[]): T[] {
   const rank = (name: string) => {
     const facility = findFacility(name);

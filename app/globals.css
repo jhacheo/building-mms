@@ -1618,7 +1618,8 @@ a:focus-visible {
   color: #434655;
   border-radius: 999px;
   padding: 5px 8px;
-  white-space: nowrap;
+  text-align: right;
+  min-width: 0;
 }
 .property-art {
   height: 205px;
