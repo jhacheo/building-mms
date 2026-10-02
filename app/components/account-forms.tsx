@@ -2,13 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import {
-  login,
-  signup,
-  createTenant,
-  addMember,
-  signInWithGoogle,
-} from "@/lib/auth/actions";
+import { login, signup, createTenant, addMember } from "@/lib/auth/actions";
 
 function Feedback({ state }: { state: { error?: string; message?: string } }) {
   return (
@@ -24,21 +18,6 @@ function Feedback({ state }: { state: { error?: string; message?: string } }) {
         </p>
       )}
     </>
-  );
-}
-
-export function GoogleSignInForm() {
-  const [state, action, pending] = useActionState(signInWithGoogle, {});
-  return (
-    <form action={action} className="record-form" aria-busy={pending}>
-      <Feedback state={state} />
-      <button
-        className="rounded-lg border border-gray-300 bg-white px-5 py-3 font-semibold text-gray-900"
-        disabled={pending}
-      >
-        {pending ? "Connecting…" : "Continue with Google"}
-      </button>
-    </form>
   );
 }
 
@@ -137,9 +116,9 @@ export function AddMemberForm() {
   return (
     <form action={action} className="record-form" aria-busy={pending}>
       <p>
-        Ask your colleague to sign in with Google first, or use an existing
-        email-verified account. Add them here using that email. No invitation
-        email is sent.
+        Ask your colleague to register and confirm their email first, or use an
+        existing email-verified account. Add them here using that email. No
+        invitation email is sent.
       </p>
       <label className="field">
         <span>Member email</span>

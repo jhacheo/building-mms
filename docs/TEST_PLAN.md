@@ -84,10 +84,14 @@ Record actual execution and deployment results below after these checks pass; do
 
 ## Google signup update — 2 October 2026
 
-At the owner's request, new account registration now uses Google through Supabase rather than an external SMTP provider. Existing verified password accounts retain sign-in access. Google users use the same PKCE callback and membership-based onboarding.
+This historical update offered Google signup through Supabase. It is superseded by the email/password-only update below.
 
 - Production build, TypeScript and ESLint passed.
 - Local browser signup displays Continue with Google and no password registration form.
 - With the actual Supabase Google provider disabled, pressing the button displays an actionable error and remains on signup. No raw Supabase error page is shown.
 - Google Cloud project Building MMS (`speedy-league-510407-t2`) was created. Provider credential setup and a real Google login remain pending; do not consider Google registration end-to-end verified until those steps pass.
+
+## Email/password-only update — 2 October 2026
+
+The owner chose Supabase email/password only. Google UI and its server action were removed; password registration was restored. Google provider activation was cancelled and the provider remains disabled. Production build and its TypeScript validation passed. Email confirmation remains enabled, so public confirmation delivery still requires SMTP setup. No database policies or tenancy boundaries changed.
 
