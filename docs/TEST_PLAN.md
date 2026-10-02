@@ -24,5 +24,16 @@
 - Status change button tap → button shows spinner until DB confirms
 
 ## Scoring Check
-- Create work order with asset type = fire_alarm → verify priority_score ≥ 40, label = high or critical
+- Create work order with asset type = fire_alarm → verify priority_score ≥ 40, label = medium for a score of 40, following the explicit intelligence rule table
 - Create with water_system + "leak" in description → verify score includes leak bonus
+
+
+## Verified implementation — 2 October 2026
+
+- Production build, strict TypeScript and ESLint pass.
+- Real database lifecycle test passes, including append-only audit, invalid transitions, cross-property asset rejection, expired warranty and pending age scoring.
+- 390px mobile browser: report Floor 3 HVAC issue, assign John, start, confirm resolution; Weekly Status shows the resolved issue with a 1-minute resolution.
+- Mobile property and asset create/edit forms persist, including warranty dates.
+- Empty filtered registry and failed linked-asset save show readable states; the failed save leaves records intact.
+- Temporary integration and registry records are removed; audit entries remain append-only.
+- Vercel public deployment awaits GitHub application installation and repository connection.

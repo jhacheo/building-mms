@@ -6,9 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint app lib --max-warnings=0",
     "typecheck": "tsc --noEmit",
-    "test:db": "node --env-file=.env.local scripts/test-database.cjs"
+    "test:db": "node --env-file=.env.local scripts/test-database.cjs",
+    "format": "prettier --write app lib scripts *.ts *.mjs package.json"
   },
   "dependencies": {
     "@supabase/ssr": "0.5.2",

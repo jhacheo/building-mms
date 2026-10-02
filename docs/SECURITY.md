@@ -17,3 +17,6 @@
 
 ## Audit Principle
 Every status change, assignment, and resolution writes to `audit_logs`. Audit log is append-only (no update/delete). Reviewable by asset managers.
+
+## Verified v1 advisor results
+Supabase Security Advisor reports no errors. Its three warnings identify the intentionally public write policies on properties, assets and work_orders required by the demo-first PRD. Audit logs remain read-only through the Data API. Performance Advisor reports no errors or warnings. The lock-down sprint must replace these demo policies before private data is introduced.
